@@ -146,7 +146,7 @@ class ZK(object):
         self.fingers = 0
         self.records = 0
         self.dummy = 0
-        self.cards = 0
+        self.admins = 0
         self.fingers_cap = 0
         self.users_cap = 0
         self.rec_cap = 0
@@ -406,6 +406,7 @@ class ZK(object):
 
         :return: bool
         """
+        if(self.verbose): print ('Enabling device ...')
         cmd_response = self.__send_command(const.CMD_ENABLEDEVICE)
         if cmd_response.get('status'):
             self.is_enabled = True
@@ -419,6 +420,7 @@ class ZK(object):
 
         :return: bool
         """
+        if(self.verbose): print ('Disabling device ...')
         cmd_response = self.__send_command(const.CMD_DISABLEDEVICE)
         if cmd_response.get('status'):
             self.is_enabled = False
@@ -654,29 +656,88 @@ class ZK(object):
         read the memory ussage
         """
         command = const.CMD_GET_FREE_SIZES
+        cmd_status = True
         response_size = 1024
-        cmd_response = self.__send_command(command,b'', response_size)
-        if cmd_response.get('status'):
-            if self.verbose: print(codecs.encode(self.__data,'hex'))
-            size = len(self.__data)
-            if len(self.__data) >= 80:
-                fields = unpack('20i', self.__data[:80])
-                self.users = fields[4]
-                self.fingers = fields[6]
-                self.records = fields[8]
-                self.dummy = fields[10] #???
-                self.cards = fields[12]
-                self.fingers_cap = fields[14]
-                self.users_cap = fields[15]
-                self.rec_cap = fields[16]
-                self.fingers_av = fields[17]
-                self.users_av = fields[18]
-                self.rec_av = fields[19]
-                self.__data = self.__data[80:]
-            if len(self.__data) >= 12: #face info
-                fields = unpack('3i', self.__data[:12]) #dirty hack! we need more information
-                self.faces = fields[0]
-                self.faces_cap = fields[2]
+
+        cmd_response = self.__send_command(command,pack('2H', 4, 0), response_size) # Get users
+        if cmd_response.get('status'): 
+            self.users = unpack('i', self.__data)[0]
+            if self.verbose: print('Number of users {}'.format(self.users))
+        else: cmd_status = False
+
+        cmd_response = self.__send_command(command,pack('2H', 6, 0), response_size) # Get finger
+        if cmd_response.get('status'): 
+            self.fingers = unpack('i', self.__data)[0]
+            if self.verbose: print('Number of fingers {}'.format(self.fingers))
+        else: cmd_status = False
+        
+        cmd_response = self.__send_command(command,pack('2H', 8, 0), response_size) # Get records
+        if cmd_response.get('status'): 
+            self.records = unpack('i', self.__data)[0]
+            if self.verbose: print('Number of records {}'.format(self.records))
+        else: cmd_status = False
+
+        cmd_response = self.__send_command(command,pack('2H', 10, 0), response_size) # Get oplog count (dummy)
+        if cmd_response.get('status'): 
+            self.dummy = unpack('i', self.__data)[0]
+            if self.verbose: print('Number of oplog count {}'.format(self.dummy))
+        else: cmd_status = False
+
+        cmd_response = self.__send_command(command,pack('2H', 12, 0), response_size) # Get admins
+        if cmd_response.get('status'): 
+            self.admins = unpack('i', self.__data)[0]
+            if self.verbose: print('Number of admins {}'.format(self.admins))
+        else: cmd_status = False
+
+        cmd_response = self.__send_command(command,pack('2H', 14, 0), response_size) # Get finger capacity
+        if cmd_response.get('status'): 
+            self.fingers_cap = unpack('i', self.__data)[0]
+            if self.verbose: print('Number of finger capacity {}'.format(self.fingers_cap))
+        else: cmd_status = False
+
+        cmd_response = self.__send_command(command,pack('2H', 15, 0), response_size) # Get user capacity
+        if cmd_response.get('status'): 
+            self.users_cap = unpack('i', self.__data)[0]
+            if self.verbose: print('Number of user capacity {}'.format(self.users_cap))
+        else: cmd_status = False
+
+        cmd_response = self.__send_command(command,pack('2H', 16, 0), response_size) # Get record capacity
+        if cmd_response.get('status'): 
+            self.rec_cap = unpack('i', self.__data)[0]
+            if self.verbose: print('Number of record capacity {}'.format(self.rec_cap))
+        else: cmd_status = False
+
+        cmd_response = self.__send_command(command,pack('2H', 17, 0), response_size) # Get finger memory available
+        if cmd_response.get('status'): 
+            self.fingers_av = unpack('i', self.__data)[0]
+            if self.verbose: print('Free spaces for save fingers {}'.format(self.fingers_av))
+        else: cmd_status = False
+        
+        cmd_response = self.__send_command(command,pack('2H', 18, 0), response_size) # Get user memory available
+        if cmd_response.get('status'): 
+            self.users_av = unpack('i', self.__data)[0]
+            if self.verbose: print('Free spaces for save users {}'.format(self.users_av))
+        else: cmd_status = False
+
+        cmd_response = self.__send_command(command,pack('2H', 19, 0), response_size) # Get record memory available
+        if cmd_response.get('status'): 
+            self.rec_av = unpack('i', self.__data)[0]
+            if self.verbose: print('Free spaces for save records {}'.format(self.rec_av))
+        else: cmd_status = False
+
+        cmd_response = self.__send_command(command,pack('2H', 20, 0), response_size) # Get faces
+        if cmd_response.get('status'): 
+            self.faces = unpack('i', self.__data)[0]
+            if self.verbose: print('Number of faces {}'.format(self.faces))
+        else: cmd_status = False
+
+        cmd_response = self.__send_command(command,pack('2H', 22, 0), response_size) # Get faces capacity
+        if cmd_response.get('status'): 
+            self.faces_cap = unpack('i', self.__data)[0]
+            if self.verbose: print('Humber of faces capacity {}'.format(self.faces_cap))
+        else: cmd_status = False
+
+        if cmd_status:
             return True
         else:
             raise ZKErrorResponse("can't read sizes")
@@ -1108,7 +1169,9 @@ class ZK(object):
         templatedata = templatedata[4:]
         while total_size:
             size, uid, fid, valid = unpack('HHbb',templatedata[:6])
+            print('debug', size, uid, fid, valid, templatedata[6:size])
             template = unpack("%is" % (size-6), templatedata[6:size])[0]
+            print('test2')
             finger = Finger(uid, fid, valid, template)
             if self.verbose: print(finger)
             templates.append(finger)
@@ -1609,7 +1672,7 @@ class ZK(object):
             return []
         total_size = unpack("I", attendance_data[:4])[0]
         record_size = total_size/self.records
-        if self.verbose: print ("record_size is ", record_size)
+        if self.verbose: print ("record_size is ", total_size, record_size)
         attendance_data = attendance_data[4:]
         if record_size == 8:
             while len(attendance_data) >= 8:
@@ -1645,6 +1708,16 @@ class ZK(object):
                 timestamp = self.__decode_time(timestamp)
                 attendance = Attendance(user_id, timestamp, status, punch, uid)
                 attendances.append(attendance)
+        elif record_size == 22:
+            while len(attendance_data) >= 22:
+                uid, user_id, status, timestamp, punch, space = unpack('<H10sB4sB4s', attendance_data.ljust(22, b'\x00')[:22])
+                if self.verbose: print (codecs.encode(attendance_data[:22], 'hex'))
+                user_id = (user_id.split(b'\x00')[0]).decode(errors='ignore')
+                timestamp = self.__decode_time(timestamp)
+
+                attendance = Attendance(user_id, timestamp, status, punch, uid)
+                attendances.append(attendance)
+                attendance_data = attendance_data[22:]
         else:
             while len(attendance_data) >= 40:
                 uid, user_id, status, timestamp, punch, space = unpack('<H24sB4sB8s', attendance_data.ljust(40, b'\x00')[:40])
@@ -1655,6 +1728,7 @@ class ZK(object):
                 attendance = Attendance(user_id, timestamp, status, punch, uid)
                 attendances.append(attendance)
                 attendance_data = attendance_data[40:]
+        
         return attendances
 
     def clear_attendance(self):
