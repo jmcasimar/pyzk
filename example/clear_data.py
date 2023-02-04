@@ -8,9 +8,8 @@ sys.path.append(ROOT_DIR)
 
 from zk import ZK
 
-
 conn = None
-zk = ZK('192.168.2.201', port=4370)
+zk = ZK('192.168.7.60', port=4370)
 try:
     conn = zk.connect()
     choices = raw_input('Are you sure want to delete all data? [Y/N]: ')

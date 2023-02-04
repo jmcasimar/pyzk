@@ -8,9 +8,8 @@ sys.path.append(ROOT_DIR)
 
 from zk import ZK
 
-
 conn = None
-zk = ZK('192.168.2.201', port=4370)
+zk = ZK('192.168.7.60', port=4370)
 try:
     conn = zk.connect()
     print ("-- Memory Information --")
@@ -18,7 +17,7 @@ try:
     print ("User        (used/max)  : %s/%s" % (conn.users, conn.users_cap))
     print ("Fingerprint (used/max)  : %s/%s" % (conn.fingers, conn.fingers_cap))
     #print conn.dummy
-    #print conn.cards
+    #print conn.admins
     #print conn.rec_cap
     #print conn.fingers_av
     #print conn.users_av

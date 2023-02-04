@@ -8,10 +8,9 @@ sys.path.append(ROOT_DIR)
 
 from zk import ZK, const
 import zk
-print (zk.__file__)
 
 conn = None
-zk = ZK('192.168.2.201', port=4370)
+zk = ZK('192.168.7.60', port=4370)
 try:
     conn = zk.connect()
     #conn.enroll_user(uid=1)
