@@ -161,3 +161,6 @@ venv.bak/
 
 # config files
 routines/config.json
+
+# credentials files
+routines/src/credentials.py
