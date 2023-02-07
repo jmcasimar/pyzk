@@ -13,7 +13,7 @@ def scan_for_hosts(ip_range):
     """Scan the given IP address range using Nmap and return the result
     in XML format.
     """
-    nmap_args = ['sudo', 'nmap', '-n', '-sP', '-oX', '-', ip_range]
+    nmap_args = ['nmap', '-n', '-sP', '-oX', '-', ip_range]
     return subprocess.check_output(nmap_args)
 
 def find_ip_address_for_mac_address(xml, mac_address):
