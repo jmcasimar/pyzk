@@ -60,7 +60,7 @@ if ip_address is not None:
             res = client.query('Collaborator', where={'accessId': user.user_id})
             # Add user if it does not exists
             if(len(res['results'])==0):
-                newUsers.append({ 'name': user.name, 'accessId': user.user_id, 'accessPrivilege': privilege, 'accessFingerprints': user.template})
+                newUsers.append({ 'name': user.name, 'accessId': user.user_id, 'accessPrivilege': privilege, 'accessFingerprints': user.template, 'active': True})
                 print('New user added to database')
                 print ('+ UID #{}'.format(user.uid))
                 print ('  Name       : {}'.format(user.name))
